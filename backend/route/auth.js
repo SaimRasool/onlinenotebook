@@ -21,8 +21,9 @@ router.post('/createuser',
         }
         try {
             let user = await User.findOne({ email: req.body.email });
+            let success = false;
             if (user) {
-                return res.status(400).json({ error: "sory this email already exist" });
+                return res.status(400).json({ success,error: "sory this email already exist" });
             }
             var salt = await bcrypt.genSaltSync(10);
             var hash = await bcrypt.hashSync(req.body.password, salt);
@@ -43,9 +44,9 @@ router.post('/createuser',
             // });
             // const user=User(req.body);
             // user.save();//other way of creating user
-
+            success=true;
             var token = jwt.sign(data, 'saimsignature');
-            res.json({ token });
+            res.json({ success, token });
         } catch (error) {
             console.error(error);
             res.status(400).send("Internal Server Error");
@@ -67,23 +68,24 @@ router.post('/login',
             return res.send({ errors: result.array() });
         }
         const {email, password}= req.body;// here we use destructuring method of javascript ev6 to auto get matching property
+        let success=false;
         try {
             let user = await User.findOne({ email: email });
             if (!user) {
-                return res.status(400).json({ error: "PLEASE try to login with correct cred" });
+                return res.status(400).json({ success, error: "PLEASE try to login with correct cred" });
             }
             var passwordCompare = await bcrypt.compare(password, user.password);
             if (!passwordCompare) {
-                return res.status(400).json({ error: "PLEASE try to login with correct cred" });
+                return res.status(400).json({ success, error: "PLEASE try to login with correct cred" });
             }
             const data = {
                 user: {
                     id: user.id
                 }
             }
-
+            success=true;
             var token = jwt.sign(data, 'saimsignature');
-            res.json({ token });
+            res.json({ success,token });
         } catch (error) {
             console.error(error);
             res.status(400).send("Internal Server Error");
